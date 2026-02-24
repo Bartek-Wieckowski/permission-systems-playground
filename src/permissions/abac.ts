@@ -17,10 +17,15 @@ async function getUserPermissionsInternal() {
   switch (role) {
     case "admin":
       addAdminPermissions(builder)
+      break
     case "editor":
-      addEditorPermissions(builder, user)
+      await addEditorPermissions(builder, user)
+      break
     case "author":
+      await addAuthorPermissions(builder, user)
+      break
     case "viewer":
+      await addViewerPermissions(builder, user)
       break
     default:
       throw new Error(`Unhandled role: ${role satisfies never}`)
@@ -55,6 +60,52 @@ async function addEditorPermissions(
     builder
       .allow("document", "read", { projectId: project.id })
       .allow("document", "update", { projectId: project.id, isLocked: false })
+  })
+}
+
+async function addAuthorPermissions(
+  builder: PermissionBuilder,
+  user: Pick<User, "department" | "id">,
+) {
+  builder
+    .allow("project", "read", { department: user.department })
+    .allow("project", "read", { department: null })
+
+  const projects = await getDepartmentProjects(user.department)
+
+  projects.forEach(project => {
+    builder
+      .allow("document", "read", { projectId: project.id, status: "published" })
+      .allow("document", "read", { projectId: project.id, status: "archived" })
+      .allow("document", "read", {
+        projectId: project.id,
+        status: "draft",
+        creatorId: user.id,
+      })
+      .allow("document", "create", { projectId: project.id })
+      .allow("document", "update", {
+        projectId: project.id,
+        isLocked: false,
+        status: "draft",
+        creatorId: user.id,
+      })
+  })
+}
+
+async function addViewerPermissions(
+  builder: PermissionBuilder,
+  user: Pick<User, "department">,
+) {
+  builder
+    .allow("project", "read", { department: user.department })
+    .allow("project", "read", { department: null })
+
+  const projects = await getDepartmentProjects(user.department)
+
+  projects.forEach(project => {
+    builder
+      .allow("document", "read", { projectId: project.id, status: "published" })
+      .allow("document", "read", { projectId: project.id, status: "archived" })
   })
 }
 
