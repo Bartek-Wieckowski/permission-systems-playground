@@ -2,6 +2,8 @@
 
 A Next.js document management application built to teach Role-Based Access Control (RBAC), Attribute-Based Access Control (ABAC), and Relationship-Based Access Control (ReBAC) concepts.
 
+Watch the [Permission Systems that Scale](https://frontendmasters.com/courses/permission-systems/) course on [Frontend Masters](https://frontendmasters.com/)
+
 ## 📚 Workshop Overview
 
 This project is broken down into different phases which correspond to specific Git branches:
