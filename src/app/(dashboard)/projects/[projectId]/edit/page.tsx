@@ -1,28 +1,34 @@
-import Link from "next/link"
-import { notFound } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { ArrowLeftIcon } from "lucide-react"
-import { ActionButton } from "@/components/ui/action-button"
-import { deleteProjectAction } from "@/actions/projects"
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { ArrowLeftIcon } from "lucide-react";
+import { ActionButton } from "@/components/ui/action-button";
+import { deleteProjectAction } from "@/actions/projects";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { getProjectById } from "@/dal/projects/queries"
-import { ProjectForm } from "@/components/project-form"
+} from "@/components/ui/card";
+import { getProjectById } from "@/dal/projects/queries";
+import { ProjectForm } from "@/components/project-form";
+import { getCurrentUser } from "@/lib/session";
 
 export default async function EditProjectPage({
   params,
 }: PageProps<"/projects/[projectId]/edit">) {
-  const { projectId } = await params
+  const { projectId } = await params;
 
-  const project = await getProjectById(projectId)
-  if (project == null) return notFound()
-  // FIX: Not checking permissions
-  // FIX: Not checking if user has access to project
+  const project = await getProjectById(projectId);
+  if (project === null || project === undefined) return notFound();
+
+  // PERMISSION:
+  const user = await getCurrentUser();
+
+  if (user?.role !== "admin") {
+    return redirect(`/`);
+  }
 
   return (
     <div className="space-y-6">
@@ -62,5 +68,5 @@ export default async function EditProjectPage({
         </Card>
       </div>
     </div>
-  )
+  );
 }
