@@ -1,33 +1,33 @@
-import Link from "next/link"
-import { notFound, redirect } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { ArrowLeftIcon } from "lucide-react"
-import { ActionButton } from "@/components/ui/action-button"
-import { deleteProjectAction } from "@/actions/projects"
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { ArrowLeftIcon } from "lucide-react";
+import { ActionButton } from "@/components/ui/action-button";
+import { deleteProjectAction } from "@/actions/projects";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { ProjectForm } from "@/components/project-form"
-import { getProjectByIdService } from "@/services/projects"
-import { getUserPermissions } from "@/permissions/casl"
-import { subject } from "@casl/ability"
+} from "@/components/ui/card";
+import { getProjectById } from "@/dal/projects/queries";
+import { ProjectForm } from "@/components/project-form";
+import { getCurrentUser } from "@/lib/session";
 
 export default async function EditProjectPage({
   params,
 }: PageProps<"/projects/[projectId]/edit">) {
-  const { projectId } = await params
+  const { projectId } = await params;
 
-  const project = await getProjectByIdService(projectId)
-  if (project == null) return notFound()
+  const project = await getProjectById(projectId);
+  if (project === null || project === undefined) return notFound();
 
   // PERMISSION:
-  const permissions = await getUserPermissions()
-  if (!permissions.can("update", subject("project", { ...project }))) {
-    return redirect(`/`)
+  const user = await getCurrentUser();
+
+  if (user?.role !== "admin") {
+    return redirect(`/`);
   }
 
   return (
@@ -70,5 +70,5 @@ export default async function EditProjectPage({
         )}
       </div>
     </div>
-  )
+  );
 }

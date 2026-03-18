@@ -1,23 +1,33 @@
-import Link from "next/link"
-import { notFound, redirect } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { ArrowLeftIcon } from "lucide-react"
-import { DocumentForm } from "@/components/document-form"
-import { getProjectByIdService } from "@/services/projects"
-import { getUserPermissions } from "@/permissions/casl"
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { ArrowLeftIcon } from "lucide-react";
+import { getProjectById } from "@/dal/projects/queries";
+import { DocumentForm } from "@/components/document-form";
+import { getCurrentUser } from "@/lib/session";
 
 export default async function NewDocumentPage({
   params,
 }: PageProps<"/projects/[projectId]/documents/new">) {
-  const { projectId } = await params
-
-  const project = await getProjectByIdService(projectId)
-  if (project == null) return notFound()
+  const { projectId } = await params;
 
   // PERMISSION:
-  const permissions = await getUserPermissions()
-  if (!permissions.can("create", "document")) {
-    return redirect(`/`)
+  const project = await getProjectById(projectId);
+  if (project === null || project === undefined) return notFound();
+
+  const user = await getCurrentUser();
+  if (
+    user == null ||
+    (user.role !== "admin" &&
+      project.department != null &&
+      user.department !== project.department)
+  ) {
+    return redirect(`/`);
+  }
+
+  // PERMISSION:
+  if (user.role === "viewer" || user.role === "editor") {
+    return redirect(`/`);
   }
 
   return (
@@ -45,5 +55,5 @@ export default async function NewDocumentPage({
         />
       </div>
     </div>
-  )
+  );
 }

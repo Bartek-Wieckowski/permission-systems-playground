@@ -1,15 +1,15 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ArrowLeftIcon } from "lucide-react"
-import { ProjectForm } from "@/components/project-form"
-import { redirect } from "next/navigation"
-import { getUserPermissions } from "@/permissions/casl"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowLeftIcon } from "lucide-react";
+import { ProjectForm } from "@/components/project-form";
+import { getCurrentUser } from "@/lib/session";
+import { redirect } from "next/navigation";
 
 export default async function NewProjectPage() {
   // PERMISSION:
-  const permissions = await getUserPermissions()
-  if (!permissions.can("create", "project")) {
-    return redirect(`/`)
+  const user = await getCurrentUser();
+  if (user == null || user.role !== "admin") {
+    return redirect(`/`);
   }
 
   return (
@@ -31,5 +31,5 @@ export default async function NewProjectPage() {
         <ProjectForm />
       </div>
     </div>
-  )
+  );
 }
