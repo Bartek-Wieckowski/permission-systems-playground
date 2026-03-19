@@ -1,27 +1,29 @@
-import Link from "next/link"
-import { notFound } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { ActionButton } from "@/components/ui/action-button"
-import { deleteDocumentAction } from "@/actions/documents"
-import { ArrowLeftIcon, LockIcon, PencilIcon } from "lucide-react"
-import { getStatusBadgeVariant } from "@/lib/helpers"
-import { getCurrentUser } from "@/lib/session"
-import { getDocumentWithUserInfoService } from "@/services/document"
-import { getProjectByIdService } from "@/services/projects"
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ActionButton } from "@/components/ui/action-button";
+import { deleteDocumentAction } from "@/actions/documents";
+import { ArrowLeftIcon, LockIcon, PencilIcon } from "lucide-react";
+import { getStatusBadgeVariant } from "@/lib/helpers";
+import { getCurrentUser } from "@/lib/session";
+import { getDocumentWithUserInfoService } from "@/services/document";
+import { getProjectByIdService } from "@/services/projects";
+import { can } from "@/permissions/rbac";
+import { canUpdateDocument } from "@/permissions/documents";
 
 export default async function DocumentDetailPage({
   params,
 }: PageProps<"/projects/[projectId]/documents/[documentId]">) {
-  const { projectId, documentId } = await params
-  const project = await getProjectByIdService(projectId)
-  if (project == null) return notFound()
+  const { projectId, documentId } = await params;
+  const project = await getProjectByIdService(projectId);
+  if (project == null) return notFound();
 
-  const user = await getCurrentUser()
+  const user = await getCurrentUser();
 
-  const document = await getDocumentWithUserInfoService(documentId)
-  if (document == null) return notFound()
+  const document = await getDocumentWithUserInfoService(documentId);
+  if (document == null) return notFound();
 
   return (
     <div className="space-y-6">
@@ -48,9 +50,7 @@ export default async function DocumentDetailPage({
         </div>
         <div className="flex gap-2">
           {/* PERMISSION: */}
-          {(user?.role === "author" ||
-            user?.role === "editor" ||
-            user?.role === "admin") && (
+          {canUpdateDocument(user, document) && (
             <Button variant="outline" asChild>
               <Link
                 href={`/projects/${projectId}/documents/${documentId}/edit`}
@@ -61,7 +61,7 @@ export default async function DocumentDetailPage({
             </Button>
           )}
           {/* PERMISSION: */}
-          {user?.role === "admin" && (
+          {can(user, "document:delete") && (
             <ActionButton
               variant="destructive"
               requireAreYouSure
@@ -108,5 +108,5 @@ export default async function DocumentDetailPage({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

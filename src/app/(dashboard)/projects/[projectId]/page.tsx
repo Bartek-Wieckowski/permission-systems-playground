@@ -1,29 +1,30 @@
-import Link from "next/link"
-import { notFound } from "next/navigation"
+import Link from "next/link";
+import { notFound } from "next/navigation";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { PlusIcon, LockIcon, FileTextIcon } from "lucide-react"
-import { getStatusBadgeVariant } from "@/lib/helpers"
-import { getCurrentUser } from "@/lib/session"
-import { getProjectDocumentsService } from "@/services/document"
-import { getProjectByIdService } from "@/services/projects"
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { PlusIcon, LockIcon, FileTextIcon } from "lucide-react";
+import { getStatusBadgeVariant } from "@/lib/helpers";
+import { getCurrentUser } from "@/lib/session";
+import { getProjectDocumentsService } from "@/services/document";
+import { getProjectByIdService } from "@/services/projects";
+import { can } from "@/permissions/rbac";
 
 export default async function ProjectDocumentsPage({
   params,
 }: PageProps<"/projects/[projectId]">) {
-  const { projectId } = await params
-  const project = await getProjectByIdService(projectId)
-  if (project == null) return notFound()
+  const { projectId } = await params;
+  const project = await getProjectByIdService(projectId);
+  if (project == null) return notFound();
 
-  const user = await getCurrentUser()
-  const documents = await getProjectDocumentsService(projectId)
+  const user = await getCurrentUser();
+  const documents = await getProjectDocumentsService(projectId);
 
   return (
     <div className="space-y-6">
@@ -36,13 +37,13 @@ export default async function ProjectDocumentsPage({
         </div>
         <div className="flex gap-2">
           {/* PERMISSION: */}
-          {user?.role === "admin" && (
+          {can(user, "project:update") && (
             <Button asChild variant="outline">
               <Link href={`/projects/${projectId}/edit`}>Edit Project</Link>
             </Button>
           )}
           {/* PERMISSION: */}
-          {(user?.role === "author" || user?.role === "admin") && (
+          {can(user, "document:create") && (
             <Button asChild>
               <Link href={`/projects/${projectId}/documents/new`}>
                 <PlusIcon className="size-4" />
@@ -62,7 +63,7 @@ export default async function ProjectDocumentsPage({
               Create your first document in this project.
             </p>
             {/* PERMISSION: */}
-            {(user?.role === "author" || user?.role === "admin") && (
+            {can(user, "document:create") && (
               <Button asChild>
                 <Link href={`/projects/${projectId}/documents/new`}>
                   <PlusIcon className="size-4 mr-2" />
@@ -74,7 +75,7 @@ export default async function ProjectDocumentsPage({
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {documents.map(doc => (
+          {documents.map((doc) => (
             <Link
               key={doc.id}
               href={`/projects/${projectId}/documents/${doc.id}`}
@@ -101,5 +102,5 @@ export default async function ProjectDocumentsPage({
         </div>
       )}
     </div>
-  )
+  );
 }

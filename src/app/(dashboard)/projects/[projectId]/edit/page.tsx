@@ -1,32 +1,33 @@
-import Link from "next/link"
-import { notFound, redirect } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { ArrowLeftIcon } from "lucide-react"
-import { ActionButton } from "@/components/ui/action-button"
-import { deleteProjectAction } from "@/actions/projects"
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { ArrowLeftIcon } from "lucide-react";
+import { ActionButton } from "@/components/ui/action-button";
+import { deleteProjectAction } from "@/actions/projects";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { ProjectForm } from "@/components/project-form"
-import { getCurrentUser } from "@/lib/session"
-import { getProjectByIdService } from "@/services/projects"
+} from "@/components/ui/card";
+import { ProjectForm } from "@/components/project-form";
+import { getCurrentUser } from "@/lib/session";
+import { getProjectByIdService } from "@/services/projects";
+import { can } from "@/permissions/rbac";
 
 export default async function EditProjectPage({
   params,
 }: PageProps<"/projects/[projectId]/edit">) {
-  const { projectId } = await params
+  const { projectId } = await params;
 
-  const project = await getProjectByIdService(projectId)
-  if (project == null) return notFound()
+  const project = await getProjectByIdService(projectId);
+  if (project == null) return notFound();
 
   // PERMISSION:
-  const user = await getCurrentUser()
-  if (user == null || user.role !== "admin") {
-    return redirect(`/`)
+  const user = await getCurrentUser();
+  if (!can(user, "project:update")) {
+    return redirect(`/`);
   }
 
   return (
@@ -48,7 +49,7 @@ export default async function EditProjectPage({
         <ProjectForm project={project} />
 
         {/* PERMISSION: */}
-        {user.role === "admin" && (
+        {can(user, "project:delete") && (
           <Card className="border-destructive">
             <CardHeader>
               <CardTitle className="text-destructive">Danger Zone</CardTitle>
@@ -69,5 +70,5 @@ export default async function EditProjectPage({
         )}
       </div>
     </div>
-  )
+  );
 }

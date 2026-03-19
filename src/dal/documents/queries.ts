@@ -1,14 +1,17 @@
-import { db } from "@/drizzle/db"
-import { DocumentTable, UserTable } from "@/drizzle/schema"
-import { eq } from "drizzle-orm"
+import { db } from "@/drizzle/db";
+import { DocumentTable, UserTable } from "@/drizzle/schema";
+import { eq, and, SQL } from "drizzle-orm";
 
 export async function getDocumentById(id: string) {
   return db.query.DocumentTable.findFirst({
     where: eq(DocumentTable.id, id),
-  })
+  });
 }
 
-export async function getProjectDocuments(projectId: string) {
+export async function getProjectDocuments(
+  projectId: string,
+  whereClause: SQL | undefined,
+) {
   return db
     .select({
       id: DocumentTable.id,
@@ -23,8 +26,8 @@ export async function getProjectDocuments(projectId: string) {
     })
     .from(DocumentTable)
     .innerJoin(UserTable, eq(DocumentTable.creatorId, UserTable.id))
-    .where(eq(DocumentTable.projectId, projectId))
-    .orderBy(DocumentTable.createdAt)
+    .where(and(eq(DocumentTable.projectId, projectId), whereClause))
+    .orderBy(DocumentTable.createdAt);
 }
 
 export async function getDocumentWithUserInfo(id: string) {
@@ -34,5 +37,5 @@ export async function getDocumentWithUserInfo(id: string) {
       creator: { columns: { name: true } },
       lastEditedBy: { columns: { name: true } },
     },
-  })
+  });
 }
