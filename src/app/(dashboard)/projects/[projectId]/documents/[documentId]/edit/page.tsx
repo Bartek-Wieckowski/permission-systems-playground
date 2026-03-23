@@ -3,10 +3,11 @@ import { notFound, redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon } from "lucide-react";
 import { DocumentForm } from "@/components/document-form";
-import { getCurrentUser } from "@/lib/session";
 import { getDocumentByIdService } from "@/services/document";
 import { getProjectByIdService } from "@/services/projects";
-import { canUpdateDocument } from "@/permissions/documents";
+import { getUserPermissions } from "@/permissions/abac";
+// import { getCurrentUser } from "@/lib/session";
+// import { canUpdateDocument } from "@/permissions/documents";
 
 export default async function EditDocumentPage({
   params,
@@ -20,8 +21,8 @@ export default async function EditDocumentPage({
   if (project == null) return notFound();
 
   // PERMISSION:
-  const user = await getCurrentUser();
-  if (!canUpdateDocument(user, document)) {
+  const permissions = await getUserPermissions();
+  if (!permissions.can("document", "update", document)) {
     return redirect(`/`);
   }
 

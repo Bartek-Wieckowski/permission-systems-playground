@@ -20,10 +20,11 @@ import { can } from "@/permissions/rbac";
 
 type AppSidebarProps = {
   projects: Pick<Project, "id" | "name" | "department">[];
-  user: Pick<User, "role"> | null;
+  // user: Pick<User, "role"> | null;
+  canCreateProject: boolean;
 };
 
-export function AppSidebar({ projects, user }: AppSidebarProps) {
+export function AppSidebar({ projects, canCreateProject }: AppSidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -33,7 +34,7 @@ export function AppSidebar({ projects, user }: AppSidebarProps) {
           <SidebarGroupLabel className="flex items-center justify-between">
             Projects
             {/* PERMISSION: */}
-            {can(user, "project:create") && (
+            {canCreateProject && (
               <Button variant="ghost" size="icon-xs" asChild>
                 <Link href="/projects/new">
                   <PlusIcon className="size-4" />

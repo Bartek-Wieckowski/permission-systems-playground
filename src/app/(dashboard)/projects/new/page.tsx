@@ -2,14 +2,20 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon } from "lucide-react";
 import { ProjectForm } from "@/components/project-form";
-import { getCurrentUser } from "@/lib/session";
 import { redirect } from "next/navigation";
-import { can } from "@/permissions/rbac";
+import { getUserPermissions } from "@/permissions/abac";
+// import { getCurrentUser } from "@/lib/session";
+// import { can } from "@/permissions/rbac";
 
 export default async function NewProjectPage() {
   // PERMISSION:
-  const user = await getCurrentUser();
-  if (!can(user, "project:create")) {
+  // const user = await getCurrentUser();
+  // if (!can(user, "project:create")) {
+  //   return redirect(`/`);
+  // }
+  //
+  const permissions = await getUserPermissions();
+  if (!permissions.can("project", "create")) {
     return redirect(`/`);
   }
 

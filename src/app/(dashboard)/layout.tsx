@@ -1,28 +1,34 @@
-import { redirect } from "next/navigation"
-import { getCurrentUser } from "@/lib/session"
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/session";
 import {
   SidebarProvider,
   SidebarInset,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/app-sidebar"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { LogOutIcon } from "lucide-react"
-import { logout } from "@/actions/auth"
-import { ActionButton } from "@/components/ui/action-button"
-import { getRoleBadgeVariant } from "@/lib/helpers"
-import { getAllProjectsService } from "@/services/projects"
+} from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { LogOutIcon } from "lucide-react";
+import { logout } from "@/actions/auth";
+import { ActionButton } from "@/components/ui/action-button";
+import { getRoleBadgeVariant } from "@/lib/helpers";
+import { getAllProjectsService } from "@/services/projects";
+import { getUserPermissions } from "@/permissions/abac";
 
 export default async function DashboardLayout({ children }: LayoutProps<"/">) {
-  const user = await getCurrentUser()
-  if (user == null) redirect("/")
+  const user = await getCurrentUser();
+  if (user == null) redirect("/");
 
-  const projects = await getAllProjectsService({ ordered: true })
+  const projects = await getAllProjectsService({ ordered: true });
+  const permissions = await getUserPermissions();
 
   return (
     <SidebarProvider>
-      <AppSidebar projects={projects} user={user} />
+      {/*<AppSidebar projects={projects} user={user} />*/}
+      <AppSidebar
+        projects={projects}
+        canCreateProject={permissions.can("project", "create")}
+      />
       <SidebarInset>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="md:-ml-1" />
@@ -48,5 +54,5 @@ export default async function DashboardLayout({ children }: LayoutProps<"/">) {
         <div className="flex-1 p-4">{children}</div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

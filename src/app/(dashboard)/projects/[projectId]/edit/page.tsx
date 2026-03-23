@@ -12,9 +12,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ProjectForm } from "@/components/project-form";
-import { getCurrentUser } from "@/lib/session";
 import { getProjectByIdService } from "@/services/projects";
-import { can } from "@/permissions/rbac";
+import { getUserPermissions } from "@/permissions/abac";
+// import { getCurrentUser } from "@/lib/session";
+// import { can } from "@/permissions/rbac";
 
 export default async function EditProjectPage({
   params,
@@ -25,11 +26,15 @@ export default async function EditProjectPage({
   if (project == null) return notFound();
 
   // PERMISSION:
-  const user = await getCurrentUser();
-  if (!can(user, "project:update")) {
+  // const user = await getCurrentUser();
+  // if (!can(user, "project:update")) {
+  //   return redirect(`/`);
+  // }
+
+  const permissions = await getUserPermissions();
+  if (!permissions.can("project", "update", project)) {
     return redirect(`/`);
   }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -49,7 +54,7 @@ export default async function EditProjectPage({
         <ProjectForm project={project} />
 
         {/* PERMISSION: */}
-        {can(user, "project:delete") && (
+        {permissions.can("project", "delete", project) && (
           <Card className="border-destructive">
             <CardHeader>
               <CardTitle className="text-destructive">Danger Zone</CardTitle>

@@ -11,10 +11,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PlusIcon, LockIcon, FileTextIcon } from "lucide-react";
 import { getStatusBadgeVariant } from "@/lib/helpers";
-import { getCurrentUser } from "@/lib/session";
+// import { getCurrentUser } from "@/lib/session";
 import { getProjectDocumentsService } from "@/services/document";
 import { getProjectByIdService } from "@/services/projects";
-import { can } from "@/permissions/rbac";
+import { getUserPermissions } from "@/permissions/abac";
+// import { can } from "@/permissions/rbac";
 
 export default async function ProjectDocumentsPage({
   params,
@@ -23,7 +24,8 @@ export default async function ProjectDocumentsPage({
   const project = await getProjectByIdService(projectId);
   if (project == null) return notFound();
 
-  const user = await getCurrentUser();
+  // const user = await getCurrentUser();
+  const permissions = await getUserPermissions();
   const documents = await getProjectDocumentsService(projectId);
 
   return (
@@ -37,13 +39,14 @@ export default async function ProjectDocumentsPage({
         </div>
         <div className="flex gap-2">
           {/* PERMISSION: */}
-          {can(user, "project:update") && (
+
+          {permissions.can("project", "update", project) && (
             <Button asChild variant="outline">
               <Link href={`/projects/${projectId}/edit`}>Edit Project</Link>
             </Button>
           )}
           {/* PERMISSION: */}
-          {can(user, "document:create") && (
+          {permissions.can("document", "create") && (
             <Button asChild>
               <Link href={`/projects/${projectId}/documents/new`}>
                 <PlusIcon className="size-4" />
@@ -63,7 +66,7 @@ export default async function ProjectDocumentsPage({
               Create your first document in this project.
             </p>
             {/* PERMISSION: */}
-            {can(user, "document:create") && (
+            {permissions.can("document", "create") && (
               <Button asChild>
                 <Link href={`/projects/${projectId}/documents/new`}>
                   <PlusIcon className="size-4 mr-2" />
